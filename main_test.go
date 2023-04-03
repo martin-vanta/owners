@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -47,7 +46,7 @@ func TestMain(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 
-			gitroot, err := ioutil.TempDir("", "codenotify")
+			gitroot, err := os.MkdirTemp("", "codenotify")
 			if err != nil {
 				t.Fatalf("unable to create temporary directory: %s", err)
 			}
@@ -63,7 +62,7 @@ func TestMain(t *testing.T) {
 					t.Fatalf("unable to make directory %s: %s", dir, err)
 				}
 
-				if err := ioutil.WriteFile(file, []byte(content), 0666); err != nil {
+				if err := os.WriteFile(file, []byte(content), 0666); err != nil {
 					t.Fatalf("unable to write file %s: %s", file, err)
 				}
 			}

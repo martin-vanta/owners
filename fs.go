@@ -23,7 +23,6 @@ type memfile struct {
 }
 
 func (m memfile) Close() error {
-	m.Buffer = nil
 	return nil
 }
 
