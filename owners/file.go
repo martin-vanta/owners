@@ -7,6 +7,7 @@ package owners
 import (
 	"bufio"
 	"io"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -32,6 +33,11 @@ type Section struct {
 type Rule struct {
 	Pattern string
 	Owners  []string
+}
+
+type Match struct {
+	RequiredOwners []string
+	OptionalOwners []string
 }
 
 func ParseFile(r io.Reader) (*OwnersFile, error) {
@@ -115,7 +121,13 @@ func parseSectionHeader(line string) *Section {
 func parseRule(line string) *Rule {
 	parts := strings.Fields(line)
 	return &Rule{
-		Pattern: parts[0],
+		Pattern: normalizePattern(parts[0]),
 		Owners:  parts[1:],
 	}
+}
+
+func normalizePattern(pattern string) string {
+	pattern = filepath.Clean(pattern)
+	pattern = strings.TrimLeft(pattern, "/")
+	return pattern
 }
