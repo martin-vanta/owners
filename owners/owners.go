@@ -17,36 +17,50 @@ const (
 )
 
 type RuleFile struct {
-	Path     string
-	Sections []Section
+	Sections []*Section
 }
 
 type Section struct {
-	Name          string
-	Optional      bool
+	Name     string
+	Optional bool
+	// Number of required approvals, not useful for GitHub.
 	Approvals     int
 	DefaultOwners []string
-	Rules         []Rule
+	Rules         []*Rule
 }
 
 type Rule struct {
 	Pattern string
+	Owners  []string
 }
 
 func ParseFile(r io.Reader) (*RuleFile, error) {
 	file := &RuleFile{}
-	// currSection := Section{Name: defaultSectionName}
 
-	var lineno int
+	currSection := &Section{Name: defaultSectionName, Approvals: 1}
+	file.Sections = append(file.Sections, currSection)
+
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := scanner.Text()
-		lineno++
 
-		// Strip comments
+		// Strip comments and whitespace.
 		commentSplit := strings.SplitN(line, "#", 2)
 		line = strings.TrimSpace(commentSplit[0])
 
+		if line == "" {
+			continue
+		}
+
+		// Try to parse a section header, otherwise parse line as a rule.
+		section := parseSectionHeader(line)
+		if section != nil {
+			file.Sections = append(file.Sections, section)
+			currSection = section
+			continue
+		}
+
+		currSection.Rules = append(currSection.Rules, parseRule(line))
 	}
 	if err := scanner.Err(); err != nil {
 		return nil, err
@@ -96,4 +110,12 @@ func parseSectionHeader(line string) *Section {
 		}
 	}
 	return section
+}
+
+func parseRule(line string) *Rule {
+	parts := strings.Fields(line)
+	return &Rule{
+		Pattern: parts[0],
+		Owners:  parts[1:],
+	}
 }
