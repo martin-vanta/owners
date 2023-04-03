@@ -65,17 +65,17 @@ func TestParseSectionHeader(t *testing.T) {
 func TestParseFile(t *testing.T) {
 	tests := []struct {
 		contents string
-		expected *RuleFile
+		expected *OwnersFile
 	}{
-		{contents: "", expected: &RuleFile{Sections: []*Section{{Name: defaultSectionName, Approvals: 1}}}},
-		{contents: "  ", expected: &RuleFile{Sections: []*Section{{Name: defaultSectionName, Approvals: 1}}}},
-		{contents: "  # foo", expected: &RuleFile{Sections: []*Section{{Name: defaultSectionName, Approvals: 1}}}},
+		{contents: "", expected: &OwnersFile{Sections: []*Section{{Name: defaultSectionName, Approvals: 1}}}},
+		{contents: "  ", expected: &OwnersFile{Sections: []*Section{{Name: defaultSectionName, Approvals: 1}}}},
+		{contents: "  # foo", expected: &OwnersFile{Sections: []*Section{{Name: defaultSectionName, Approvals: 1}}}},
 		{
 			contents: `
 				foo.go @user1
 				bar.ts @user2
 			`,
-			expected: &RuleFile{Sections: []*Section{
+			expected: &OwnersFile{Sections: []*Section{
 				{Name: defaultSectionName, Approvals: 1, Rules: []*Rule{
 					{Pattern: "foo.go", Owners: []string{"@user1"}},
 					{Pattern: "bar.ts", Owners: []string{"@user2"}},
@@ -89,7 +89,7 @@ func TestParseFile(t *testing.T) {
 				^[docs] @docs
 				readme.md
 			`,
-			expected: &RuleFile{Sections: []*Section{
+			expected: &OwnersFile{Sections: []*Section{
 				{Name: defaultSectionName, Approvals: 1},
 				{Name: "go", Approvals: 1, Rules: []*Rule{
 					{Pattern: "foo.go", Owners: []string{"@user1"}},

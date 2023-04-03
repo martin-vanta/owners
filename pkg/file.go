@@ -16,7 +16,7 @@ const (
 	defaultSectionName = "OWNERS"
 )
 
-type RuleFile struct {
+type OwnersFile struct {
 	Sections []*Section
 }
 
@@ -34,8 +34,8 @@ type Rule struct {
 	Owners  []string
 }
 
-func ParseFile(r io.Reader) (*RuleFile, error) {
-	file := &RuleFile{}
+func ParseFile(r io.Reader) (*OwnersFile, error) {
+	file := &OwnersFile{}
 
 	currSection := &Section{Name: defaultSectionName, Approvals: 1}
 	file.Sections = append(file.Sections, currSection)
