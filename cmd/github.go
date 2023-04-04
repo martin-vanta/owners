@@ -31,7 +31,7 @@ func githubRun(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	results, err := owners.FindOwners(actions.OwnersFileName, diffs)
+	results, err := owners.FindOwners(ownersFileName, diffs)
 	if err != nil {
 		return err
 	}

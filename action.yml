@@ -16,7 +16,8 @@ inputs:
 runs:
   using: docker
   image: Dockerfile
-  entrypoint: 'owners github'
+  args:
+    - github
 branding:
   icon: bell
   color: yellow

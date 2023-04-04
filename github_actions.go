@@ -37,7 +37,6 @@ type GitHubActions struct {
 	BaseRef           string
 	HeadRef           string
 	Workspace         string
-	OwnersFileName    string
 	MaxNumOwners      int
 	MaxNumFiles       int
 }
@@ -63,11 +62,6 @@ func GetGitHubActions() (*GitHubActions, error) {
 		return nil, fmt.Errorf("env var GITHUB_WORKSPACE not set")
 	}
 
-	ownersFileName := os.Getenv("INPUT_OWNERS_FILE_NAME")
-	if ownersFileName == "" {
-		return nil, fmt.Errorf("env var INPUT_OWNERS_FILE_NAME not set")
-	}
-
 	maxNumOwners, _ := strconv.Atoi(os.Getenv("INPUT_MAX_NUM_OWNERS"))
 	maxNumFiles, _ := strconv.Atoi(os.Getenv("INPUT_MAX_NUM_FILES"))
 
@@ -77,7 +71,6 @@ func GetGitHubActions() (*GitHubActions, error) {
 		BaseRef:           event.PullRequest.Base.Sha,
 		HeadRef:           event.PullRequest.Head.Sha,
 		Workspace:         workspace,
-		OwnersFileName:    ownersFileName,
 		MaxNumOwners:      maxNumOwners,
 		MaxNumFiles:       maxNumFiles,
 	}, nil
@@ -104,7 +97,7 @@ func (g *GitHubActions) Prepare() error {
 func (g *GitHubActions) WriteComment(results FindResults) error {
 	comment := g.writeComment(results)
 
-	commentId, err := findExistingCommentId(g.PullRequestNodeID, g.OwnersFileName)
+	commentId, err := findExistingCommentId(g.PullRequestNodeID)
 	if err != nil {
 		return err
 	}
@@ -129,7 +122,7 @@ func (g *GitHubActions) writeComment(results FindResults) string {
 	}
 
 	writeLinef(commentHeader)
-	writeLinef("[Owners](https://github.com/martin-vanta/owners): Notifying file owners in %s files for diff %s...%s.\n\n", g.OwnersFileName, g.BaseRef, g.HeadRef)
+	writeLinef("[Owners](https://github.com/martin-vanta/owners): Notifying file owners for diff %s...%s.\n\n", g.BaseRef, g.HeadRef)
 	if len(results.Owners) == 0 {
 		writeLinef("No notifications.")
 	} else {
@@ -220,7 +213,7 @@ func getCommitCount(prNodeID string) (int, error) {
 	return data.Node.Commits.TotalCount, err
 }
 
-func findExistingCommentId(prNodeID string, filename string) (string, error) {
+func findExistingCommentId(prNodeID string) (string, error) {
 	data := struct {
 		Node struct {
 			Comments struct {
