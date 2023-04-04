@@ -13,6 +13,9 @@ FROM alpine
 
 RUN apk add --no-cache git
 
+# Workaround for https://github.com/actions/runner-images/issues/6775
+RUN git config --global --add safe.directory '*'
+
 COPY --from=builder /app/owners /usr/local/bin/
 
 ENTRYPOINT ["owners"]
