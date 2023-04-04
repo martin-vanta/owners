@@ -1,4 +1,4 @@
-name: owners-notify
+name: notify-owners
 description: Notify code owners of changes
 inputs:
   owners_file_name:
@@ -16,6 +16,7 @@ inputs:
 runs:
   using: docker
   image: Dockerfile
+  entrypoint: 'owners github'
 branding:
   icon: bell
   color: yellow
