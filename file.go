@@ -35,11 +35,6 @@ type Rule struct {
 	Owners  []string
 }
 
-type Match struct {
-	RequiredOwners []string
-	OptionalOwners []string
-}
-
 func ParseFile(r io.Reader) (*OwnersFile, error) {
 	file := &OwnersFile{}
 

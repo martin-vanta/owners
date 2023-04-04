@@ -2,6 +2,7 @@ package owners
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,7 +12,7 @@ import (
 )
 
 type Matcher struct {
-	fs             afero.Fs // Mocked FS for testing.
+	fs             afero.Fs
 	ownersFileName string
 	ownersFiles    map[string]*OwnersFile
 }
@@ -39,7 +40,7 @@ func (m *Matcher) Load(dirPath string) (*OwnersFile, error) {
 			}
 			ownersFile, err := ParseFile(file)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to parse file %s: %w", ownersFilePath, err)
 			}
 			m.ownersFiles[dirPath] = ownersFile
 		} else if errors.Is(err, os.ErrNotExist) {
@@ -52,7 +53,12 @@ func (m *Matcher) Load(dirPath string) (*OwnersFile, error) {
 	return m.ownersFiles[dirPath], nil
 }
 
-func (m *Matcher) Match(filePath string) (*Match, error) {
+type MatchOwner struct {
+	Owner    string
+	Optional bool
+}
+
+func (m *Matcher) Match(filePath string) ([]MatchOwner, error) {
 	// Search in a/b/OWNERS -> a/OWNERS -> OWNERS
 	parts := strings.Split(filepath.Clean(filePath), string(os.PathSeparator))
 	for i := len(parts) - 1; i >= 0; i-- {
@@ -67,21 +73,20 @@ func (m *Matcher) Match(filePath string) (*Match, error) {
 			return nil, err
 		}
 
-		match, err := matchInFile(ownersFile, relFilePath)
+		matchedOwners, err := matchInFile(ownersFile, relFilePath)
 		if err != nil {
 			return nil, err
 		}
 
-		if match != nil {
-			return match, nil
+		if len(matchedOwners) > 0 {
+			return matchedOwners, nil
 		}
 	}
-
 	return nil, nil
 }
 
-func matchInFile(ownersFile *OwnersFile, relFilePath string) (*Match, error) {
-	match := &Match{}
+func matchInFile(ownersFile *OwnersFile, relFilePath string) ([]MatchOwner, error) {
+	ownersToRequired := make(map[string]bool)
 	for _, section := range ownersFile.Sections {
 		for i := len(section.Rules) - 1; i >= 0; i-- {
 			rule := section.Rules[i]
@@ -90,24 +95,29 @@ func matchInFile(ownersFile *OwnersFile, relFilePath string) (*Match, error) {
 			if err != nil {
 				return nil, err
 			}
-
-			if matched {
-				owners := rule.Owners
-				if len(owners) == 0 {
-					owners = section.DefaultOwners
-				}
-				if section.Optional {
-					match.OptionalOwners = append(match.OptionalOwners, owners...)
-				} else {
-					match.RequiredOwners = append(match.RequiredOwners, owners...)
-				}
-				break
+			if !matched {
+				continue
 			}
+
+			owners := rule.Owners
+			if len(owners) == 0 {
+				owners = section.DefaultOwners
+			}
+
+			for _, owner := range owners {
+				ownersToRequired[owner] = ownersToRequired[owner] || !section.Optional
+			}
+
+			break
 		}
 	}
 
-	if len(match.RequiredOwners) == 0 && len(match.OptionalOwners) == 0 {
-		return nil, nil
+	var matchedOwners []MatchOwner
+	for owner, required := range ownersToRequired {
+		matchedOwners = append(matchedOwners, MatchOwner{
+			Owner:    owner,
+			Optional: !required,
+		})
 	}
-	return match, nil
+	return matchedOwners, nil
 }

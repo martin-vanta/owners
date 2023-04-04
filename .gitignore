@@ -1,3 +1,6 @@
 /codenotify
 /coverage.txt
 .idea
+
+# Build and tool binaries
+bin/

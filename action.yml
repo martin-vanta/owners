@@ -1,5 +1,5 @@
-name: 'codenotify'
-description: 'Notify subscribed users and groups of changes.'
+name: owners-notify
+description: Notify code owners of changes
 inputs:
   filename:
     description: 'Filename in which file subscribers are defined'
@@ -10,8 +10,8 @@ inputs:
     required: false
     default: '0'
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
+  using: docker
+  image: Dockerfile
 branding:
-  icon: 'bell'
-  color: 'yellow'
+  icon: bell
+  color: yellow
