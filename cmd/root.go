@@ -5,8 +5,8 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "codeowners",
-	Short: "Codeowners helps you find owners for files",
+	Use:   "owners",
+	Short: "Owners helps you find owners for files",
 	RunE:  rootRun,
 }
 
@@ -19,6 +19,7 @@ func init() {
 
 	rootCmd.AddCommand(findCmd)
 	rootCmd.AddCommand(generateCmd)
+	rootCmd.AddCommand(githubCmd)
 }
 
 func rootRun(cmd *cobra.Command, args []string) error {

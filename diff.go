@@ -14,26 +14,25 @@ type Differ interface {
 }
 
 type gitDiffer struct {
-	since string
+	baseRef string
+	headRef string
 }
 
-func NewGitDiffer(since string) Differ {
+func NewGitDiffer(baseRef, headRef string) Differ {
 	return gitDiffer{
-		since: since,
+		baseRef: baseRef,
+		headRef: headRef,
 	}
 }
 
 func (d gitDiffer) Diff() ([]string, error) {
-	// Find all files changed since ancestor commit of the reference and HEAD.
-	cmd := exec.Command("git", "diff", fmt.Sprintf("%s...", d.since), "--name-only")
-	var stdout, stderr strings.Builder
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("error executing '%s'\n%s", strings.Join(cmd.Args, " "), stderr.String())
+	// Find all files changed since ancestor commit of the references.
+	stdout, err := run("git", "diff", fmt.Sprintf("%s...%s", d.baseRef, d.headRef), "--name-only")
+	if err != nil {
+		return nil, err
 	}
 
-	lines := strings.Fields(stdout.String())
+	lines := strings.Fields(stdout)
 	sort.Strings(lines)
 	return lines, nil
 }
@@ -80,4 +79,15 @@ func NewLiteralDiffer(filePaths []string) Differ {
 
 func (d literalDiffer) Diff() ([]string, error) {
 	return d, nil
+}
+
+func run(command string, args ...string) (string, error) {
+	cmd := exec.Command(command, args...)
+	var stdout, stderr strings.Builder
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("error running command '%s':\n%s", strings.Join(cmd.Args, " "), stderr.String())
+	}
+	return stdout.String(), nil
 }

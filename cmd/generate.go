@@ -7,7 +7,7 @@ import (
 
 var generateCmd = &cobra.Command{
 	Use:   "generate",
-	Short: "Generate or edit a CODEOWNERS file",
+	Short: "Generate a CODEOWNERS file",
 	RunE:  generateRun,
 }
 

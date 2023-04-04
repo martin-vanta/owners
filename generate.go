@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -41,15 +40,12 @@ func GenerateCodeOwners(ownersFileName, codeOwnersFilePath string) error {
 }
 
 func findAllOwnersFiles(ownersFileName string) ([]string, error) {
-	cmd := exec.Command("git", "ls-files", ownersFileName, fmt.Sprintf("**/%s", ownersFileName))
-	var stdout, stderr strings.Builder
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("error executing '%s'\n%s", strings.Join(cmd.Args, " "), stderr.String())
+	stdout, err := run("git", "ls-files", ownersFileName, fmt.Sprintf("**/%s", ownersFileName))
+	if err != nil {
+		return nil, err
 	}
 
-	lines := strings.Fields(stdout.String())
+	lines := strings.Fields(stdout)
 	sort.Strings(lines)
 	return lines, nil
 }

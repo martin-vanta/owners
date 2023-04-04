@@ -1,14 +1,18 @@
 name: owners-notify
 description: Notify code owners of changes
 inputs:
-  filename:
-    description: 'Filename in which file subscribers are defined'
+  owners_file_name:
+    description: Name of owners files
     required: false
-    default: 'CODENOTIFY'
-  subscriber-threshold:
-    description: 'The threshold of notifying subscribers to prevent broad spamming, 0 to disable'
+    default: OWNERS
+  max_num_owners:
+    description: Maximum number of owners to notify, 0 to disable
     required: false
-    default: '0'
+    default: "100"
+  max_num_files:
+    description: Maximum number of files to display, 0 to disable
+    required: false
+    default: "100"
 runs:
   using: docker
   image: Dockerfile

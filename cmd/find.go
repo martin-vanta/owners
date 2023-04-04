@@ -31,7 +31,7 @@ func findRun(cmd *cobra.Command, args []string) error {
 	if changedFilesFilePath != "" {
 		differ = owners.NewFileDiffer(changedFilesFilePath)
 	} else if gitSince != "" {
-		differ = owners.NewGitDiffer(gitSince)
+		differ = owners.NewGitDiffer(gitSince, "HEAD")
 	} else {
 		differ = owners.NewLiteralDiffer(nil)
 	}
