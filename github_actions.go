@@ -36,7 +36,6 @@ type GitHubActions struct {
 	Draft             bool
 	BaseRef           string
 	HeadRef           string
-	Workspace         string
 	MaxNumOwners      int
 	MaxNumFiles       int
 }
@@ -57,11 +56,6 @@ func GetGitHubActions() (*GitHubActions, error) {
 		return nil, fmt.Errorf("unable to decode GitHub event: %s\n%s", err, string(data))
 	}
 
-	workspace := os.Getenv("GITHUB_WORKSPACE")
-	if path == "" {
-		return nil, fmt.Errorf("env var GITHUB_WORKSPACE not set")
-	}
-
 	maxNumOwners, _ := strconv.Atoi(os.Getenv("INPUT_MAX_NUM_OWNERS"))
 	maxNumFiles, _ := strconv.Atoi(os.Getenv("INPUT_MAX_NUM_FILES"))
 
@@ -70,23 +64,18 @@ func GetGitHubActions() (*GitHubActions, error) {
 		Draft:             event.PullRequest.Draft,
 		BaseRef:           event.PullRequest.Base.Sha,
 		HeadRef:           event.PullRequest.Head.Sha,
-		Workspace:         workspace,
 		MaxNumOwners:      maxNumOwners,
 		MaxNumFiles:       maxNumFiles,
 	}, nil
 }
 
 func (g *GitHubActions) Prepare() error {
-	if err := os.Chdir(g.Workspace); err != nil {
-		return err
-	}
-
 	commitCount, err := getCommitCount(g.PullRequestNodeID)
 	if err != nil {
 		return err
 	}
 
-	_, err = run("git", "-c", "protocol.version=2", "fetch", "--deepen", strconv.Itoa(commitCount))
+	_, err = run("git", "-c", "protocol.version=2", "fetch", "--deepen", strconv.Itoa(commitCount+1))
 	if err != nil {
 		return err
 	}
