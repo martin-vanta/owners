@@ -30,6 +30,13 @@ func FindOwners(ownersFileName string, filePaths []string) (FindResults, error) 
 		})
 	}
 
+	sort.Slice(results.Owners, func(i, j int) bool {
+		if results.Owners[i].Owner != results.Owners[j].Owner {
+			return results.Owners[i].Owner < results.Owners[j].Owner
+		}
+		return !results.Owners[i].Optional
+	})
+
 	return results, nil
 }
 

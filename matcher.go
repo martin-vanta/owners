@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/bmatcuk/doublestar/v4"
@@ -112,12 +113,19 @@ func matchInFile(ownersFile *OwnersFile, relFilePath string) ([]MatchOwner, erro
 		}
 	}
 
+	var sortedOwners []string
+	for owner := range ownersToRequired {
+		sortedOwners = append(sortedOwners, owner)
+	}
+	sort.Strings(sortedOwners)
+
 	var matchedOwners []MatchOwner
-	for owner, required := range ownersToRequired {
+	for _, owner := range sortedOwners {
 		matchedOwners = append(matchedOwners, MatchOwner{
 			Owner:    owner,
-			Optional: !required,
+			Optional: !ownersToRequired[owner],
 		})
 	}
+
 	return matchedOwners, nil
 }
