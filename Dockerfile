@@ -13,7 +13,7 @@ FROM alpine
 
 RUN apk add --no-cache git
 
-COPY entrypoint /entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
 COPY --from=builder /app/owners /usr/local/bin/
 
 ENTRYPOINT ["/entrypoint.sh"]
